@@ -1,0 +1,4 @@
+### Requirements ###
+flask
+Flask-MongoAlchemy
+flask-restplus

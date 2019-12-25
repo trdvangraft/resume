@@ -1,0 +1,22 @@
+<!doctype html>
+<html>
+  <head>
+    <title>This is the title of the webpage!</title>
+  </head>
+  <body>
+    <form method="POST" action="/submit">
+      {{ form.hidden_tag() }}
+      {{ form.title.label }} {{ form.title(size=20) }}
+      <input type="submit" value="Go">
+    </form>
+    <ul>
+      {% for todo in todo %}
+        <li>
+          <h2>{{ todo.title }}</h2>
+        </li>
+      {% else %}
+        <li>No entrie yet</li>
+      {% endfor %}
+    </ul>
+  </body>
+</html>
