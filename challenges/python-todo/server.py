@@ -42,10 +42,9 @@ class Todo(Resource):
         try:
             data = todo_schema.load(json_data)
         except ValidationError as err:
-            return err.message, 422
+            return err, 422
         new_todo_id = col.insert_one(data).inserted_id
-        data["_id"] = new_todo_id
-        return jsonify({"message": "Successfully added to database", "todo": todos_schema.dump(data)})
+        return todos_schema.dump(col.find({ "_id": ObjectId(new_todo_id) }))
     
     def put(self, todo_id):
         col = mongo.db.todo_schema
@@ -58,7 +57,6 @@ class Todo(Resource):
             return err, 422
         col.update_one({ "_id": ObjectId(todo_id) }, { "$set": data })
         return todos_schema.dump(col.find())
-
 
 if __name__ == '__main__':
     app.run()
