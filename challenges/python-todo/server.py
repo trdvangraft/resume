@@ -1,42 +1,64 @@
-from flask_restplus import Resource, Api, abort
+from flask_restplus import Resource, Api, abort, fields
 from flask import Flask, request, jsonify, render_template, url_for
-from flask_mongoalchemy import MongoAlchemy, BaseQuery
+from marshmallow import Schema, fields, ValidationError
+from flask_pymongo import PyMongo
+from bson.objectid import ObjectId
 
 def create_app():
     app = Flask(__name__, template_folder="templates")
     app.config["DEBUG"] = True
-    app.config["MONGOALCHEMY_DATABASE"] = 'library'
+    app.config["MONGO_URI"] = 'mongodb://localhost:27017/todo_python'
     return app
 
 app = create_app()
-db = MongoAlchemy(app)
+mongo = PyMongo(app)
 api = Api(app)
 
-todos = [
-    {
-        'id': '1',
-        'title': 'Buy groceries',
-        'description': 'Milk, Cheese, Pizza, Fruit, Tylenol', 
-        'done': False
-    },
-    {
-        'id': '2',
-        'title': 'Learn Python',
-        'description': 'Need to find a good Python tutorial on the web', 
-        'done': False
-    }
-]
+### Schemas ###
+class TodoSchema(Schema):
+    _id = fields.Str()
+    title = fields.Str()
+    description = fields.Str()
+    done = fields.Str()
 
-@api.route('/v1/todo')
-@api.route('/v1/todo/<string:todo_id>')
+todo_schema = TodoSchema()
+todos_schema = TodoSchema(many=True)
+
+@api.route('/v1/todo', methods = ["GET", "POST"])
+@api.route('/v1/todo/<string:todo_id>', methods = ["GET", "PUT"])
 class Todo(Resource):
-    def get(self, todo_id = None):
+    def get(self, todo_id=None):
+        print(todo_id)
+        col = mongo.db.todo_schema
         if todo_id == None:
-            return todos
-        matched_todos = [todo for todo in todos if todo['id'] == todo_id]
-        if len(matched_todos) == 0:
-            abort(404, 'Todo was not found')
-        return jsonify({ 'todo': matched_todos[0] })
+            return todos_schema.dump(col.find())
+        return todos_schema.dump(col.find({ "_id": ObjectId(todo_id)}))
+    
+    def post(self):
+        col = mongo.db.todo_schema
+        json_data = request.get_json()
+        if not json_data:
+            return {"message": "No input data provided"}, 400
+        try:
+            data = todo_schema.load(json_data)
+        except ValidationError as err:
+            return err.message, 422
+        new_todo_id = col.insert_one(data).inserted_id
+        data["_id"] = new_todo_id
+        return jsonify({"message": "Successfully added to database", "todo": todos_schema.dump(data)})
+    
+    def put(self, todo_id):
+        col = mongo.db.todo_schema
+        json_data = request.get_json()
+        if not json_data:
+            return {"message": "No input data provided"}, 400
+        try:
+            data = todo_schema.load(json_data)
+        except ValidationError as err:
+            return err, 422
+        col.update_one({ "_id": ObjectId(todo_id) }, { "$set": data })
+        return todos_schema.dump(col.find())
+
 
 if __name__ == '__main__':
     app.run()

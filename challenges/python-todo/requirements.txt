@@ -1,4 +1,5 @@
 ### Requirements ###
 flask
-Flask-MongoAlchemy
+Flask-PyMongo
 flask-restplus
+marshmallow
