@@ -56,7 +56,13 @@ class Todo(Resource):
         except ValidationError as err:
             return err, 422
         col.update_one({ "_id": ObjectId(todo_id) }, { "$set": data })
-        return todos_schema.dump(col.find())
+        return todos_schema.dump(col.find({"_id": ObjectId(todo_id)}))
+    
+    def delete(self, todo_id):
+        col = mongo.db.todo_schema
+        if todo_id == None:
+            return {"message": "No input data provided"}, 400
+        
 
 if __name__ == '__main__':
     app.run()
