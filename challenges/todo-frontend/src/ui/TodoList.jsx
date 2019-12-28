@@ -3,6 +3,9 @@ import { List, Paper } from '@material-ui/core';
 
 import TodoListItem from './TodoListItem';
 
+/**
+ * The todolist component
+ */
 const TodoList = memo(props => {
     return (
         <>
