@@ -7,7 +7,7 @@ const AddTodo = memo(props => (
                 <Grid xs={10} md={11} item style={{ paddingRight: 16 }}>
                     <TextField
                     placeholder="Add Todo title here"
-                    value={props.inputValue}
+                    value={props.inputTitle}
                     onChange={props.onInputChange}
                     onKeyPress={props.onInputKeyPress}
                     name="title"

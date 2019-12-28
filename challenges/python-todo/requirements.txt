@@ -3,3 +3,4 @@ flask
 Flask-PyMongo
 flask-restplus
 marshmallow
+flask-cors

@@ -9,18 +9,19 @@ import AddTodo from './ui/AddTodo';
 import TodoList from './ui/TodoList';
 
 const TodoApp = memo(props => {
-    const { inputValue, changeInput, clearInput, keyInput } = useInputValue();
+    const { inputTitle, inputDescription, changeInput, clearInput, keyInput } = useInputValue();
     const { todos, addTodo, checkTodo, removeTodo } = useTodos();
 
     const clearInputAndAddTodo = _ => {
         clearInput();
-        addTodo(inputValue);
+        addTodo(inputTitle, inputDescription);
     };
     
     return (
         <Layout>
             <AddTodo
-                inputValue={inputValue}
+                inputTitle={inputTitle}
+                inputDescription={inputDescription}
                 onInputChange={changeInput}
                 onButtonClick={clearInputAndAddTodo}
                 onInputKeyPress={event => keyInput(event, clearInputAndAddTodo)}

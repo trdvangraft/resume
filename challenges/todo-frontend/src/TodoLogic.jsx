@@ -22,19 +22,34 @@ export const useInputValue = (initialValue = '') => {
     }
 }
 
-export const useTodos = (initialValue = []) => {
-    const [todos, setTodos] = useState(initialValue)
-
+export const useTodos = () => {
     return {
-        todos,
         addTodo: (title, description) => {
-
+            fetch(`http://127.0.0.1:5000/v1/todo`, {
+                method: "post",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    title,
+                    description,
+                    done: "False"
+                })
+            })
         },
         checkTodo: idx => {
-            console.log(idx)
+            fetch(`http://127.0.0.1:5000/v1/todo/${idx}`, {
+                method: "put",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    done: "True"
+                })
+            })
         },
         removeTodo: idx => {
-            
+            console.log(idx)
         }
     }
 }

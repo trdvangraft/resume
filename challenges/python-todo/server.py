@@ -1,5 +1,6 @@
 from flask_restplus import Resource, Api, abort, fields
 from flask import Flask, request, jsonify, render_template, url_for
+from flask_cors import CORS
 from marshmallow import Schema, fields, ValidationError
 from flask_pymongo import PyMongo
 from bson.objectid import ObjectId
@@ -13,6 +14,7 @@ def create_app():
 app = create_app()
 mongo = PyMongo(app)
 api = Api(app)
+CORS(app)
 
 ### Schemas ###
 class TodoSchema(Schema):
@@ -37,6 +39,7 @@ class Todo(Resource):
     def post(self):
         col = mongo.db.todo_schema
         json_data = request.get_json()
+        print(json_data)
         if not json_data:
             return {"message": "No input data provided"}, 400
         try:
