@@ -11,8 +11,8 @@ const Layout = memo(props => (
                 <Typography color="inherit">My Todo App</Typography>
             </Toolbar>
         </AppBar>
-        <Grid container>
-            <Grid item md={8}>
+        <Grid container spacing={2} justify={"center"}>
+            <Grid item xs={12} md={8}>
                 {props.children}
             </Grid>
         </Grid>

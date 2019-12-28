@@ -16,7 +16,10 @@ const TodoListItem = memo(props => (
         checked={props.done === 'True'}
         disableRipple
         />
-        <ListItemText primary={props.title} />
+        <ListItemText
+            primary={props.title}
+            secondary={props.description}
+        />
         <ListItemSecondaryAction>
             <IconButton aria-label="Delete Todo" onClick={props.onButtonClick}>
                 <DeleteOutlined />
