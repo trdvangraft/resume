@@ -13,7 +13,7 @@ const TodoListItem = memo(props => (
     <ListItem divider={props.divider}>
         <Checkbox
         onClick={props.onCheckBoxToggle}
-        checked={props.done}
+        checked={props.done === 'True'}
         disableRipple
         />
         <ListItemText primary={props.title} />
