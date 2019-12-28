@@ -27,7 +27,7 @@ todo_schema = TodoSchema()
 todos_schema = TodoSchema(many=True)
 
 @api.route('/v1/todo', methods = ["GET", "POST"])
-@api.route('/v1/todo/<string:todo_id>', methods = ["GET", "PUT"])
+@api.route('/v1/todo/<string:todo_id>', methods = ["GET", "PUT", "DELETE"])
 class Todo(Resource):
     def get(self, todo_id=None):
         print(todo_id)
@@ -65,6 +65,8 @@ class Todo(Resource):
         col = mongo.db.todo_schema
         if todo_id == None:
             return {"message": "No input data provided"}, 400
+        col.delete_one({ "_id": ObjectId(todo_id) })
+        return todos_schema.dump(col.find())
         
 
 if __name__ == '__main__':
