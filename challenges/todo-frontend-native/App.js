@@ -1,21 +1,24 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { AppearanceProvider, useColorScheme } from 'react-native-appearance'
+import { createAppContainer } from 'react-navigation'
+import { createStackNavigator } from 'react-navigation-stack'
+import TodoScreen from './src/TodoScreen';
+import TodoListScreen from './src/TodoListScreen';
 
-export default function App() {
+const MainNavigator = createStackNavigator({
+  TodoList: { screen: TodoListScreen },
+  Todo: { screen: TodoScreen }
+})
+
+const App = createAppContainer(MainNavigator)
+
+export default () => {
+  const theme = useColorScheme()
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <Text>Help me!</Text>
-      <Text>Android is working!!</Text>
-    </View>
-  );
+    <AppearanceProvider>
+      <App theme={theme} />
+    </AppearanceProvider>
+  )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
