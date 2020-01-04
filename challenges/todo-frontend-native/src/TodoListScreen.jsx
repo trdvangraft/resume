@@ -1,30 +1,15 @@
 import { API_URL } from "react-native-dotenv";
 import React, { Component, useState, useEffect, memo } from 'react';
-import { Button, View, Text, FlatList } from 'react-native';
+import { Button, View, Text, FlatList, RefreshControl } from 'react-native';
 import { ListItem } from 'react-native-material-ui';
 import axios from 'axios';
 
 const TodoListScreen = props => {
     const { navigate } = props.navigation
-    const [todos, setTodos] = useState([])
-    const [shouldRefresh, setShouldRefresh] = useState(false)
-
-    /**
-     * The component did mount function, load the todos from the api
-     */
-    useEffect(() => {
-        axios.get(`${API_URL}/v1/todo`)
-            .then(response => {
-                console.log(response.data)
-                setTodos(response.data)
-            })
-            .catch(err => console.log(err))
-    }, [shouldRefresh])
 
     return (
         <View>
             <TodoList
-                todos={todos}
                 onItemPress={todo => {
                     navigate('Todo', {
                         todo: todo
@@ -41,7 +26,20 @@ TodoListScreen.navigationOptions = () => {
     }
 }
 
-const TodoList = ({ todos, onItemPress }) => {
+const TodoList = ({ onItemPress }) => {
+    const [todos, setTodos] = useState([])
+    const [shouldRefresh, setShouldRefresh] = useState(false)
+
+    /**
+     * The component did mount function, load the todos from the api
+     */
+    useEffect(() => {
+        axios.get(`${API_URL}/v1/todo`)
+            .then(response => setTodos(response.data))
+            .then(() => setShouldRefresh(false))
+            .catch(err => console.log(err))
+    }, [shouldRefresh])
+
     return (
         <FlatList
             data={todos}
@@ -57,6 +55,8 @@ const TodoList = ({ todos, onItemPress }) => {
                     onPress={() => onItemPress(item)}
                 />
             )}
+            onRefresh={() => setShouldRefresh(true)}
+            refreshing={shouldRefresh}
         />
     )
 }
