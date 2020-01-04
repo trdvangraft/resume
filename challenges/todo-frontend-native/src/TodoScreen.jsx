@@ -1,19 +1,21 @@
 import React, { Component } from 'react';
-import { Button } from 'react-native';
+import { Button, View } from 'react-native';
 
-class TodoScreen extends Component {
-    static navigationOptions = {
-        title: "Todo screen"
-    }
+const TodoScreen = ({ navigation }) => {
+    const { navigate } = navigation
 
-    render() {
-        const { navigate } = this.props.navigation
-        return (
-            <Button
-                title="This is the todo go back"
-                onPress={() => navigate('TodoList', { todo: 'Test' })}
-            />
-        )
+    const todo = JSON.stringify(navigation.getParam('todo'))
+
+    return (
+        <View>
+
+        </View>
+    )
+}
+
+TodoScreen.navigationOptions = () => {
+    return {
+        title: 'Todo screen'
     }
 }
 
