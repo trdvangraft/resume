@@ -35,9 +35,12 @@ const AddTodoModel = props => {
     })
 
     const addTodo = useCallback((title, description) => {
+        console.log(`API ${API_URL}`)
+        console.log(`title: ${title} description: ${description}`)
         axios.post(`${API_URL}/v1/todo`, {
-            title,
-            description
+            "title": title,
+            "description": description,
+            "done": "False"
         })
             .then(() => props.navigation.goBack())
     })
@@ -51,8 +54,8 @@ const AddTodoModel = props => {
 }
 
 const AddTodoModelForm = ({ submitTodo, dismiss }) => {
-    const [title, setTitle] = useState('')
-    const [description, setDescription] = useState('')
+    const [title, setTitle] = useState('t')
+    const [description, setDescription] = useState('t')
 
     return (
         <SafeAreaView style={styles.container}>
@@ -82,7 +85,7 @@ const AddTodoModelForm = ({ submitTodo, dismiss }) => {
                 >Dismiss</Button>
                 <Button
                     style={styles.button}
-                    onPress={() => submitTodo()}
+                    onPress={() => submitTodo(title, description)}
                     mode="contained"
                     icon="check"
                     accessibilityLabel="Submit"

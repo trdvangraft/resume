@@ -1,23 +1,48 @@
 import { API_URL } from "react-native-dotenv";
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, FlatList } from 'react-native';
+import { View, StyleSheet, FlatList, Dimensions } from 'react-native';
 import axios from 'axios';
-import { List, FAB, IconButton } from 'react-native-paper';
+import {  FAB, IconButton } from 'react-native-paper';
+import TodoListItem from './TodoListItem'
 
 const TodoListScreen = props => {
     const { navigate } = props.navigation
-    const onModalDismiss = () => {
-        console.log('modal closing')
-    }
+    const [todos, setTodos] = useState([])
+    const [shouldRefresh, setShouldRefresh] = useState(false)
+    const [scrollEnabled, setScrollEnabled] = useState(true)
+
+    /**
+     * The component did mount function, load the todos from the api
+     */
+    useEffect(() => {
+        axios.get(`${API_URL}/v1/todo`)
+            .then(response => setTodos(response.data))
+            .then(() => setShouldRefresh(false))
+            .catch(err => {
+                setShouldRefresh(false)
+                console.log(err)
+            })
+    }, [shouldRefresh])
+
+    const onModalDismiss = () => setShouldRefresh(true)
+    const onItemPress = todo => navigate('Todo', { todo: todo })
+    const updateScroll = enabled => setScrollEnabled(enabled)
 
     return (
         <View style={styles.container}>
-            <TodoList
-                onItemPress={todo => {
-                    navigate('Todo', {
-                        todo: todo
-                    })
-                }}
+            <FlatList
+                data={todos}
+                keyExtractor={item => item._id}
+                renderItem={({ item }) => (
+                    <TodoListItem
+                        item={item}
+                        onItemPress={onItemPress}
+                        updateScroll={updateScroll}
+                    />
+                )}
+                onRefresh={() => setShouldRefresh(true)}
+                refreshing={shouldRefresh}
+                scrollEnabled={scrollEnabled}
             />
             <FAB
                 icon="plus"
@@ -38,7 +63,7 @@ const styles = StyleSheet.create({
         bottom: 20,
         right: 20,
         position: 'absolute',
-    },
+    }
 });
 
 TodoListScreen.navigationOptions = ({ navigation }) => {
@@ -48,39 +73,6 @@ TodoListScreen.navigationOptions = ({ navigation }) => {
         headerRight: () => <IconButton icon="plus" size={28} onPress={() => navigation.navigate('AddTodoModal')}/>,
         title: 'Welcome todo list'
     }
-}
-
-const TodoList = ({ onItemPress }) => {
-    const [todos, setTodos] = useState([])
-    const [shouldRefresh, setShouldRefresh] = useState(false)
-
-    /**
-     * The component did mount function, load the todos from the api
-     */
-    useEffect(() => {
-        axios.get(`${API_URL}/v1/todo`)
-            .then(response => setTodos(response.data))
-            .then(() => setShouldRefresh(false))
-            .catch(err => console.log(err))
-    }, [shouldRefresh])
-
-    return (
-        <FlatList
-            data={todos}
-            keyExtractor={item => item._id}
-            renderItem={({ item }) => (
-                <List.Item
-                    id={item._id}
-                    divider
-                    title={item.title}
-                    description={item.description}
-                    onPress={() => onItemPress(item)}
-                />
-            )}
-            onRefresh={() => setShouldRefresh(true)}
-            refreshing={shouldRefresh}
-        />
-    )
 }
 
 export default TodoListScreen
