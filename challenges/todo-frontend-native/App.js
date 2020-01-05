@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { Component } from 'react';
 import { AppearanceProvider, useColorScheme } from 'react-native-appearance'
 import { createAppContainer } from 'react-navigation'
 import { createStackNavigator } from 'react-navigation-stack'
 import TodoScreen from './src/TodoScreen';
 import TodoListScreen from './src/TodoListScreen';
 import AddTodoModel from './src/AddTodoModel';
+import { AppLoading } from 'expo'
+import * as Font from 'expo-font'; 
 
 const MainNavigator = createStackNavigator({
   TodoList: { screen: TodoListScreen },
@@ -21,12 +23,18 @@ const RootNavigator = createStackNavigator({
 
 const App = createAppContainer(RootNavigator)
 
-export default () => {
-  const theme = useColorScheme()
+export default class NativeApp extends Component {
+  state = {
+    fontsLoaded: false
+  }
 
-  return (
-    <AppearanceProvider>
-      <App theme={theme} />
-    </AppearanceProvider>
-  )
+  componentDidMount() {
+    Font.loadAsync({
+      'MaterialCommunityIcons': require('react-native-vector-icons/Fonts/MaterialCommunityIcons.ttf')
+    }).then(() => this.setState({ fontsLoaded: true }))
+  }
+
+  render() {
+    return !this.state.fontsLoaded ? <AppLoading /> : <App />
+  }
 }
