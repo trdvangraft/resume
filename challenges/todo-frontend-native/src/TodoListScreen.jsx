@@ -6,6 +6,9 @@ import { List, FAB, IconButton } from 'react-native-paper';
 
 const TodoListScreen = props => {
     const { navigate } = props.navigation
+    const onModalDismiss = () => {
+        console.log('modal closing')
+    }
 
     return (
         <View style={styles.container}>
@@ -18,7 +21,7 @@ const TodoListScreen = props => {
             />
             <FAB
                 icon="plus"
-                onPress={() => navigate('AddTodoModal')}
+                onPress={() => navigate('AddTodoModal', { onModalDismiss: onModalDismiss})}
                 style={styles.fab}
             />
         </View>
