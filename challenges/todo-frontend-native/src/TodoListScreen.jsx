@@ -1,14 +1,17 @@
 import { API_URL } from "react-native-dotenv";
 import React, { Component, useState, useEffect, memo } from 'react';
-import { Button, View, Text, FlatList, RefreshControl } from 'react-native';
+import { Button, View, StyleSheet, FlatList, RefreshControl } from 'react-native';
 import { ListItem } from 'react-native-material-ui';
 import axios from 'axios';
+import { Icon } from 'react-native-material-ui';
+import { ActionButton } from 'react-native-material-ui';
+import { MaterialHeaderButtons, Item } from "./HeaderIcons";
 
 const TodoListScreen = props => {
     const { navigate } = props.navigation
 
     return (
-        <View>
+        <View style={styles.container}>
             <TodoList
                 onItemPress={todo => {
                     navigate('Todo', {
@@ -16,12 +19,38 @@ const TodoListScreen = props => {
                     })
                 }}
             />
+            <ActionButton
+                icon="add-circle"
+                onPress={() => navigate('AddTodoModal')}
+                style={styles.fab}
+            />
         </View>
     )
 }
 
-TodoListScreen.navigationOptions = () => {
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+    },
+    fab: {
+        margin: 0,
+        top: 'auto',
+        left: 20,
+        bottom: 20,
+        right: 'auto',
+        position: 'absolute',
+    },
+});
+
+TodoListScreen.navigationOptions = ({ navigation }) => {
+    const params = navigation.state.params || {}
+
     return {
+        headerRight: () => (
+            <MaterialHeaderButtons>
+                <Item title="add" iconName="add-circle" onPress={() => navigation.navigate('AddTodoModal')} />
+            </MaterialHeaderButtons>
+        ),
         title: 'Welcome todo list'
     }
 }
