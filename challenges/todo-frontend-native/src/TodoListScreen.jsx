@@ -25,7 +25,7 @@ const TodoListScreen = props => {
     }, [shouldRefresh])
 
     const onModalDismiss = () => setShouldRefresh(true)
-    const onItemPress = todo => navigate('Todo', { todo: todo })
+    const onItemPress = todo => navigate('Todo', { todo: todo, todoID: '1' })
     const updateScroll = enabled => setScrollEnabled(enabled)
 
     return (
