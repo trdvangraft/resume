@@ -20,9 +20,9 @@ const FormInput = props => {
 }
 
 const AddTodoModel = props => {
-    
-
     const submitTodo = (title, description) => addTodo(title, description)
+    const { onModalDismiss, todo } = props.navigation.state.params
+    let createdNewTodo = false
 
     /**
      * Run the `componentWillUnmount` as an effect,
@@ -30,7 +30,7 @@ const AddTodoModel = props => {
      */
     useEffect(() => {
         return () => {
-            props.navigation.state.params.onModalDismiss()
+            onModalDismiss(createdNewTodo)
         }
     })
 
@@ -42,20 +42,33 @@ const AddTodoModel = props => {
             "description": description,
             "done": "False"
         })
+            .then(() => createdNewTodo = true)
             .then(() => props.navigation.goBack())
+    })
+
+    const editTodo = useCallback((title, description) => {
+        axios.put(`${API_URL}/v1/todo/${todo._id}`, {
+            "title": title,
+            "description": description
+        })
+            .then(() => createdNewTodo = true)
+            .then(() => props.navigation.goBack())
+            .catch(err => console.log(err))            
     })
 
     return (
         <AddTodoModelForm 
             submitTodo={submitTodo}
+            editTodo={editTodo}
             dismiss={() => props.navigation.goBack()}
+            todo={todo}
         />
     )
 }
 
-const AddTodoModelForm = ({ submitTodo, dismiss }) => {
-    const [title, setTitle] = useState('t')
-    const [description, setDescription] = useState('t')
+const AddTodoModelForm = ({ submitTodo, editTodo, dismiss, todo }) => {
+    const [title, setTitle] = useState(todo ? todo.title : '')
+    const [description, setDescription] = useState(todo ? todo.description : '')
 
     return (
         <SafeAreaView style={styles.container}>
@@ -83,13 +96,24 @@ const AddTodoModelForm = ({ submitTodo, dismiss }) => {
                     icon="delete"
                     accessibilityLabel="Dismiss"
                 >Dismiss</Button>
-                <Button
-                    style={styles.button}
-                    onPress={() => submitTodo(title, description)}
-                    mode="contained"
-                    icon="check"
-                    accessibilityLabel="Submit"
-                >Submit</Button>
+                {todo ? 
+                    <Button
+                        style={styles.button}
+                        onPress={() => editTodo(title, description)}
+                        mode="contained"
+                        icon="check"
+                        accessibilityLabel="Update"
+                    >Update</Button>
+                : 
+                    <Button
+                        style={styles.button}
+                        onPress={() => submitTodo(title, description)}
+                        mode="contained"
+                        icon="check"
+                        accessibilityLabel="Submit"
+                    >Submit</Button>        
+                }
+                
             </View>
             
         </SafeAreaView>

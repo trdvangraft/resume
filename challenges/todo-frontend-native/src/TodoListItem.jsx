@@ -49,7 +49,7 @@ const TodoListItem = memo(({ item, onItemPress, onItemChange, onItemDelete, upda
             >
                 <View style={styles.todoConfig} onStartShouldSetResponderCapture={event => false} onMoveShouldSetResponderCapture={event => false}>
                     <View style={styles.todoConfigItem}>
-                        <TouchableOpacity  style={[styles.todoConfigItem]} onPress={() => console.log('Edit')}>
+                        <TouchableOpacity  style={[styles.todoConfigItem]} onPress={() => onItemChange(item)}>
                             <IconButton icon="pencil" size={28} color={'#ffcc00'} animated={true}/>
                         </TouchableOpacity>
                     </View>

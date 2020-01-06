@@ -1,5 +1,5 @@
 import { API_URL } from "react-native-dotenv";
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, StyleSheet, FlatList, Dimensions } from 'react-native';
 import axios from 'axios';
 import {  FAB, IconButton } from 'react-native-paper';
@@ -8,25 +8,29 @@ import TodoListItem from './TodoListItem'
 const TodoListScreen = props => {
     const { navigate } = props.navigation
     const [todos, setTodos] = useState([])
-    const [shouldRefresh, setShouldRefresh] = useState(false)
+    const [isRefreshing, setIsRefreshing] = useState(false)
     const [scrollEnabled, setScrollEnabled] = useState(true)
+    const shouldPopulateData = useRef(true)
 
     /**
      * The component did mount function, load the todos from the api
      */
     useEffect(() => {
-        console.log(API_URL)
-        axios.get(`${API_URL}/v1/todo`)
-            .then(response => setTodos(response.data))
-            .then(() => setShouldRefresh(false))
-            .catch(err => {
-                setShouldRefresh(false)
-                console.log(err)
+        if (isRefreshing || shouldPopulateData.current) {
+            axios.get(`${API_URL}/v1/todo`)
+                .then(response => setTodos(response.data))
+                .then(() => setIsRefreshing(false))
+                .then(() => shouldPopulateData.current = false)
+                .catch(err => {
+                    setIsRefreshing(false)
+                    console.log(err)
             })
-    }, [shouldRefresh])
+        }
+        
+    }, [isRefreshing])
 
-    const onModalDismiss = () => setShouldRefresh(true)
-    const onItemPress = todo => navigate('Todo', { todo: todo, todoID: '1' })
+    const onModalDismiss = (hasNewTodo = false) => setIsRefreshing(hasNewTodo)
+    const onItemPress = todo => navigate('Todo', { todo: todo })
     const updateScroll = enabled => setScrollEnabled(enabled)
 
     const onItemDelete = useCallback(item => {
@@ -37,8 +41,13 @@ const TodoListScreen = props => {
             },
         })
             .then(res => res.json())
-            .then(response => setShouldRefresh(true))
+            .then(response => setIsRefreshing(true))
             .catch(err => console.log(err))
+    })
+
+    const onItemChange = item => navigate('AddTodoModal', {
+        todo: item,
+        onModalDismiss: onModalDismiss
     })
 
     return (
@@ -52,10 +61,11 @@ const TodoListScreen = props => {
                         onItemPress={onItemPress}
                         updateScroll={updateScroll}
                         onItemDelete={onItemDelete}
+                        onItemChange={onItemChange}
                     />
                 )}
-                onRefresh={() => setShouldRefresh(true)}
-                refreshing={shouldRefresh}
+                onRefresh={() => setIsRefreshing(true)}
+                refreshing={isRefreshing}
                 scrollEnabled={scrollEnabled}
             />
             <FAB
