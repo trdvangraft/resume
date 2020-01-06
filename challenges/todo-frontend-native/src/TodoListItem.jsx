@@ -1,17 +1,20 @@
 import React, { useState, memo } from 'react';
-import { View, StyleSheet, PanResponder, Animated, Dimensions } from 'react-native';
-import { List, IconButton } from 'react-native-paper';
+import { View, StyleSheet, PanResponder, Animated, Dimensions, TouchableHighlight, Text, TouchableOpacity } from 'react-native';
+import { List, IconButton, Button } from 'react-native-paper';
 
 const width = 0.3 * Math.round(Dimensions.get('window').width)
-const TodoListItem = memo(({ item, onItemPress, updateScroll }) => {
+const TodoListItem = memo(({ item, onItemPress, onItemChange, onItemDelete, updateScroll }) => {
     const gestureDelay = -35;
     const scrollViewEnabled = true;
     const [position, setPosition] = useState(new Animated.ValueXY())
 
     const panResponder = PanResponder.create({
-        onStartShouldSetPanResponder: (evt, gestureState) => false,
-        onMoveShouldSetPanResponder: (evt, gestureState) => true,
-        onPanResponderTerminationRequest: (evt, gestureState) => false,
+        onMoveShouldSetPanResponder: (evt, gestureState) => {
+            const {dx, dy} = gestureState;
+            const touchThreshold = 50
+            return (Math.abs(dx) > touchThreshold) || (Math.abs(dy) > touchThreshold);
+        },
+        onPanResponderTerminationRequest: (evt, gestureState) => true,
         onPanResponderMove: (evt, gestureState) => {
             if (gestureState.dx > 35) {
                 updateScroll(false);
@@ -20,11 +23,7 @@ const TodoListItem = memo(({ item, onItemPress, updateScroll }) => {
             }
         },
         onPanResponderRelease: (evt, gestureState) => {
-            if (Math.abs(gestureState.dx) < 35) {
-                if (position.__getValue().x !== width) {
-                    onItemPress(item)
-                }
-            } else if (gestureState.dx < 150) {
+            if (gestureState.dx < 150) {
                 Animated.timing(position, {
                     toValue: {x: 0, y: 0},
                     duration: 150,
@@ -48,12 +47,17 @@ const TodoListItem = memo(({ item, onItemPress, updateScroll }) => {
                 style={[position.getLayout()]} 
                 {...panResponder.panHandlers}
             >
-                <View style={styles.todoConfig}>
-                    <View style={[styles.todoConfigItem]}>
-                        <IconButton icon="pencil" size={28} color={'#ffcc00'}/>
+                <View style={styles.todoConfig} onStartShouldSetResponderCapture={event => false} onMoveShouldSetResponderCapture={event => false}>
+                    <View style={styles.todoConfigItem}>
+                        <TouchableOpacity  style={[styles.todoConfigItem]} onPress={() => console.log('Edit')}>
+                            <IconButton icon="pencil" size={28} color={'#ffcc00'} animated={true}/>
+                        </TouchableOpacity>
                     </View>
-                    <View style={[styles.todoConfigItem]}>
-                        <IconButton icon="delete" size={28} color={'#cc0000'}/>
+                    
+                    <View style={styles.todoConfigItem}>
+                        <TouchableOpacity style={[styles.todoConfigItem]} onPress={() => onItemDelete(item)}>
+                            <IconButton icon="delete" size={28} color={'#cc0000'} animated={true}/>
+                        </TouchableOpacity>
                     </View>
                 </View>
                 <View style={styles.todoContent}>
@@ -62,6 +66,7 @@ const TodoListItem = memo(({ item, onItemPress, updateScroll }) => {
                         divider
                         title={item.title}
                         description={item.description}
+                        onPress={() => onItemPress(item)}
                     />
                 </View>
             </Animated.View>

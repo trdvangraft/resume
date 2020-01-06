@@ -1,6 +1,6 @@
-import React, { Component, useEffect } from 'react';
-import { StyleSheet, Button, View } from 'react-native';
-import { Card, Title, Paragraph, Avatar } from 'react-native-paper';
+import React from 'react';
+import { StyleSheet, View } from 'react-native';
+import { Card, Title, Paragraph } from 'react-native-paper';
 
 const TodoScreen = ({ navigation }) => {
     const todo = JSON.parse(JSON.stringify(navigation.getParam('todo')))

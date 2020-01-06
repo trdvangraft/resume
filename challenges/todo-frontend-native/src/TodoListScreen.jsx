@@ -1,5 +1,5 @@
 import { API_URL } from "react-native-dotenv";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, FlatList, Dimensions } from 'react-native';
 import axios from 'axios';
 import {  FAB, IconButton } from 'react-native-paper';
@@ -15,6 +15,7 @@ const TodoListScreen = props => {
      * The component did mount function, load the todos from the api
      */
     useEffect(() => {
+        console.log(API_URL)
         axios.get(`${API_URL}/v1/todo`)
             .then(response => setTodos(response.data))
             .then(() => setShouldRefresh(false))
@@ -28,6 +29,18 @@ const TodoListScreen = props => {
     const onItemPress = todo => navigate('Todo', { todo: todo, todoID: '1' })
     const updateScroll = enabled => setScrollEnabled(enabled)
 
+    const onItemDelete = useCallback(item => {
+        fetch(`${API_URL}/v1/todo/${item._id}`, {
+            method: "DELETE",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+        })
+            .then(res => res.json())
+            .then(response => setShouldRefresh(true))
+            .catch(err => console.log(err))
+    })
+
     return (
         <View style={styles.container}>
             <FlatList
@@ -38,6 +51,7 @@ const TodoListScreen = props => {
                         item={item}
                         onItemPress={onItemPress}
                         updateScroll={updateScroll}
+                        onItemDelete={onItemDelete}
                     />
                 )}
                 onRefresh={() => setShouldRefresh(true)}
