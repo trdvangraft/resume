@@ -2,7 +2,7 @@ import { API_URL } from "react-native-dotenv";
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, StyleSheet, FlatList, Dimensions } from 'react-native';
 import axios from 'axios';
-import {  FAB, IconButton } from 'react-native-paper';
+import {  FAB, IconButton, Snackbar } from 'react-native-paper';
 import TodoListItem from './TodoListItem'
 
 const TodoListScreen = props => {
@@ -10,25 +10,26 @@ const TodoListScreen = props => {
     const [todos, setTodos] = useState([])
     const [isRefreshing, setIsRefreshing] = useState(false)
     const [scrollEnabled, setScrollEnabled] = useState(true)
+    const [hasError, setHasError] = useState(false)
     const shouldPopulateData = useRef(true)
 
     /**
      * The component did mount function, load the todos from the api
      */
-    useEffect(() => {
-        if (isRefreshing || shouldPopulateData.current) {
-            axios.get(`${API_URL}/v1/todo`)
-                .then(response => setTodos(response.data))
-                .then(() => setIsRefreshing(false))
-                .then(() => shouldPopulateData.current = false)
-                .catch(err => {
-                    setIsRefreshing(false)
-                    console.log(err)
-            })
-        }
-        
-    }, [isRefreshing])
+    useEffect(() => fetchTodos(), [])
 
+    const fetchTodos = () => {
+        console.log(API_URL)
+        axios.get(`${API_URL}/v1/todo`)
+            .then(response => setTodos(response.data))
+            .then(() => setIsRefreshing(false))
+            .then(() => shouldPopulateData.current = false)
+            .catch(err => {
+                console.log(`an error occured when loading data ${err}`)
+                setIsRefreshing(false)
+                setHasError(true)
+        })
+    }
     const onModalDismiss = (hasNewTodo = false) => setIsRefreshing(hasNewTodo)
     const onItemPress = todo => navigate('Todo', { todo: todo })
     const updateScroll = enabled => setScrollEnabled(enabled)
@@ -64,7 +65,7 @@ const TodoListScreen = props => {
                         onItemChange={onItemChange}
                     />
                 )}
-                onRefresh={() => setIsRefreshing(true)}
+                onRefresh={() => fetchTodos()}
                 refreshing={isRefreshing}
                 scrollEnabled={scrollEnabled}
             />
@@ -73,6 +74,20 @@ const TodoListScreen = props => {
                 onPress={() => navigate('AddTodoModal', { onModalDismiss: onModalDismiss})}
                 style={styles.fab}
             />
+            <Snackbar
+                visible={hasError}
+                onDismiss={() => setHasError(false)}
+                action={{
+                    label: 'Retry',
+                    accessibilityLabel: 'Retry loading todos',
+                    onPress: () => {
+                        fetchTodos()
+                        setHasError(false)
+                    }
+                }}
+            >
+                Failed loading todos
+            </Snackbar>
         </View>
     )
 }

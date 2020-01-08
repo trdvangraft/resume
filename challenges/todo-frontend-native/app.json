@@ -22,8 +22,8 @@
     "assetBundlePatterns": [
       "**/*"
     ],
-    "ios": {
-      "supportsTablet": true
+    "android": {
+      "package": "com.trdvgraft.todonative"
     }
   }
 }
