@@ -5,16 +5,17 @@ from marshmallow import Schema, fields, ValidationError
 from flask_pymongo import PyMongo
 from bson.objectid import ObjectId
 
-def create_app():
+def create_app(MONGO_URI = 'mongodb://localhost:27017/todo_python'):
     app = Flask(__name__, template_folder="templates")
     app.config["DEBUG"] = True
-    app.config["MONGO_URI"] = 'mongodb://localhost:27017/todo_python'
-    return app
+    app.config["MONGO_URI"] = MONGO_URI
+    CORS(app)
+    mongo = PyMongo(app)
+    api = Api(app)
+    return app, mongo, api
 
-app = create_app()
-mongo = PyMongo(app)
-api = Api(app)
-CORS(app)
+app, mongo, api = create_app()
+
 
 ### Schemas ###
 class TodoSchema(Schema):
