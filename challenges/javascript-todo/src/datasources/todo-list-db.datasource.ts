@@ -8,8 +8,7 @@ import {juggler} from '@loopback/repository';
 import config from './todo-list-db.datasource.config.json';
 
 @lifeCycleObserver('datasource')
-export class TodoListDbDataSource extends juggler.DataSource
-  implements LifeCycleObserver {
+export class TodoListDbDataSource extends juggler.DataSource implements LifeCycleObserver {
   static dataSourceName = 'TodoListDB';
 
   constructor(

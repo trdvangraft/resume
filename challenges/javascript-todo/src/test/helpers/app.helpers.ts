@@ -4,6 +4,7 @@ import {
   givenHttpServerConfig,
   Client,
 } from '@loopback/testlab';
+import config from '../fixtures/datasources/testdb.datasource.config.json';
 
 export async function setupApplication(): Promise<AppWithClient> {
   const restConfig = givenHttpServerConfig({
@@ -18,6 +19,7 @@ export async function setupApplication(): Promise<AppWithClient> {
     rest: restConfig,
   });
 
+  app.bind('datasources.config.TodoListDB').to(config);
   await app.boot();
   await app.start();
 

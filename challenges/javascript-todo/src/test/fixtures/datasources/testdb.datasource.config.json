@@ -1,0 +1,12 @@
+{
+    "name": "TodoListTestDB",
+    "connector": "mongodb",
+    "url": "",
+    "host": "localhost",
+    "port": 27017,
+    "user": "",
+    "password": "",
+    "database": "todo_list_test",
+    "useNewUrlParser": true
+  }
+  

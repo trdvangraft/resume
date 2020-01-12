@@ -1,6 +1,6 @@
 import {Entity, model, property} from '@loopback/repository';
 
-@model()
+@model({ settings: { strictObjectIDCoercion: true } })
 export class Todo extends Entity {
   @property({
     type: 'string',
@@ -21,12 +21,11 @@ export class Todo extends Entity {
   description?: string;
 
   @property({
-    type: 'array',
-    itemType: 'string',
+    type: 'string',
     required: true,
-    default: ['Pending'],
+    default: 'Pending',
   })
-  status: string[];
+  status: string;
 
   @property({
     type: 'string',

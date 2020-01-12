@@ -1,4 +1,6 @@
 {
   "recursive": true,
-  "require": "source-map-support/register"
+  "require": "source-map-support/register",
+  "extensions": ["ts"],
+  "watch-files": ["dist/__tests__/**/*.ts"]
 }
