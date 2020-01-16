@@ -23,7 +23,7 @@ export class TodoList extends Entity {
   description?: string;
 
   @property({
-    type: 'object',
+    type: 'date',
     required: true,
   })
   creationDate: object;

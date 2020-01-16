@@ -1,27 +1,148 @@
-import { givenEmptyDatabase, givenTodo, givenTodos } from "../../helpers/database.helpers";
-import { expect } from "@loopback/testlab";
-import { TodoController } from "../../../controllers";
-import { testdb } from "../../fixtures/datasources/testdb.datasource";
-import { TodoRepository } from "../../../repositories";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import {
+  givenEmptyDatabase,
+  givenTodo,
+  givenTodos,
+  givenTodoData,
+} from '../../helpers/database.helpers';
+import {expect} from '@loopback/testlab';
+import {TodoController} from '../../../controllers';
+import {testdb} from '../../fixtures/datasources/testdb.datasource';
+import {TodoRepository} from '../../../repositories';
+import {Todo} from '../../../models';
+import {todoConverter} from '../../helpers/types.helpers';
 
 describe('TodoController (integration)', () => {
-    beforeEach(givenEmptyDatabase)
+  beforeEach(givenEmptyDatabase);
 
-    it('creates a new todo', async () => {
-        const todo = await givenTodo({ title: 'new title' })
-        const controller = new TodoController(new TodoRepository(testdb))
+  describe('create()', () => {
+    it('creates new todo', async () => {
+      const todo = givenTodoData() as Todo;
+      const controller = new TodoController(new TodoRepository(testdb));
 
-        const result = await controller.find()
+      // convertBsonToString<Todo>()
+      const {id, todoListId, ...result} = await controller.create(todo);
 
-        expect(result).to.containEql(todo)
-    })
+      expect(result).to.eql(todo);
+    });
 
+    it('creates a list of todos', async () => {
+      const todos = [
+        givenTodoData(),
+        givenTodoData({title: 'todo-b'}),
+      ] as Array<Todo>;
+      const controller = new TodoController(new TodoRepository(testdb));
+
+      const result = await controller.createAll(todos);
+
+      // assert that all todos have a valid id
+      result.map(el => expect(el).to.have.property('id').which.is.String);
+
+      expect(todoConverter(result)).to.eql(todos);
+    });
+
+    it('throws an error for incorrect todo', async () => {
+      const fakeTodo = {title: 'fake'} as Todo;
+
+      const controller = new TodoController(new TodoRepository(testdb));
+
+      const result = controller.create(fakeTodo);
+
+      expect(result).to.throw();
+    });
+  });
+
+  describe('read()', () => {
     it('finds new todo', async () => {
-        const todos = await Promise.all(givenTodos([{ title: 'a-todo' }, { title: 'b-todo', description: 'b-description' }]))
-        const controller = new TodoController(new TodoRepository(testdb))
+      const todos = await initTodos();
+      const controller = new TodoController(new TodoRepository(testdb));
 
-        const result = await controller.find()
+      const result = await controller.find();
 
-        expect(result).to.containDeep(todos)
-    })
-})
+      expect(result).to.containDeep(todos);
+    });
+
+    it('filters todos', async () => {
+      const todos = await initTodos([{title: 'c-todo'}]);
+      const controller = new TodoController(new TodoRepository(testdb));
+
+      const result = await controller.find({where: {title: 'c-todo'}});
+
+      expect(result)
+        .to.eql(todos.filter(el => el.title === 'c-todo'))
+        .and.to.have.length(1);
+    });
+
+    it('returns empty list if no match', async () => {
+      await initTodos();
+      const controller = new TodoController(new TodoRepository(testdb));
+
+      const result = await controller.find({where: {title: 'c-todo'}});
+
+      expect(result)
+        .to.eql([])
+        .to.have.length(0);
+    });
+
+    it('it returns an empty list on a empty db', async () => {
+      const controller = new TodoController(new TodoRepository(testdb));
+
+      const result = await controller.find({where: {title: 'c-todo'}});
+
+      expect(result)
+        .to.eql([])
+        .to.have.length(0);
+    });
+  });
+
+  describe('update()', () => {
+    it('update by id', async () => {
+      const controller = new TodoController(new TodoRepository(testdb));
+      const todos = await initTodos([{title: 'c-todo'}]);
+
+      const todo = todos.filter(el => el.title === 'c-todo')[0];
+      todo.title = 'd-todo';
+
+      await controller.updateById(todo.id!, todo);
+      const result = await controller.findById(todo.id!);
+
+      expect(todoConverter(result)).to.eql(todoConverter(todo));
+    });
+
+    it('update by where', async () => {
+      const controller = new TodoController(new TodoRepository(testdb));
+      await initTodos([{description: 'tag'}, {description: 'tag'}]);
+
+      const todo = givenTodoData() as Todo;
+
+      const count = await controller.updateAll(todo, {description: 'tag'});
+      const result = await controller.find({where: {description: 'tag'}});
+
+      expect(count.count).is.eql(2);
+      expect(result).to.have.length(0);
+    });
+  });
+
+  describe('delete()', () => {
+    it('delete by id', async () => {
+      const controller = new TodoController(new TodoRepository(testdb));
+      const todos = await initTodos();
+      const todo = todos[0];
+
+      await controller.deleteById(todo.id!);
+      const result = controller.findById(todo.id!);
+
+      expect(result).to.throw();
+    });
+  });
+
+  const initTodos = (additionalTodos: Array<Partial<Todo>> = []) => {
+    return Promise.all(
+      givenTodos([
+        {title: 'a-todo'},
+        {title: 'b-todo', description: 'b-description'},
+        ...additionalTodos,
+      ]),
+    );
+  };
+});

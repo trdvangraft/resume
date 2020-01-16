@@ -23,7 +23,7 @@ import {TodoRepository} from '../repositories';
 export class TodoController {
   constructor(
     @repository(TodoRepository)
-    public todoRepository : TodoRepository,
+    public todoRepository: TodoRepository,
   ) {}
 
   @post('/todos', {
@@ -48,6 +48,40 @@ export class TodoController {
     todo: Omit<Todo, 'id'>,
   ): Promise<Todo> {
     return this.todoRepository.create(todo);
+  }
+
+  @post('/todos', {
+    responses: {
+      '200': {
+        description: 'Todo model instance',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'array',
+              items: getModelSchemaRef(Todo, {includeRelations: true}),
+            },
+          },
+        },
+      },
+    },
+  })
+  async createAll(
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: {
+            type: 'array',
+            items: getModelSchemaRef(Todo, {
+              title: 'NewTodos',
+              exclude: ['id'],
+            }),
+          },
+        },
+      },
+    })
+    todos: Array<Omit<Todo, 'id'>>,
+  ): Promise<Array<Todo>> {
+    return this.todoRepository.createAll(todos);
   }
 
   @get('/todos/count', {
@@ -80,7 +114,8 @@ export class TodoController {
     },
   })
   async find(
-    @param.query.object('filter', getFilterSchemaFor(Todo)) filter?: Filter<Todo>,
+    @param.query.object('filter', getFilterSchemaFor(Todo))
+    filter?: Filter<Todo>,
   ): Promise<Todo[]> {
     return this.todoRepository.find(filter);
   }
@@ -121,7 +156,8 @@ export class TodoController {
   })
   async findById(
     @param.path.string('id') id: string,
-    @param.query.object('filter', getFilterSchemaFor(Todo)) filter?: Filter<Todo>
+    @param.query.object('filter', getFilterSchemaFor(Todo))
+    filter?: Filter<Todo>,
   ): Promise<Todo> {
     return this.todoRepository.findById(id, filter);
   }
