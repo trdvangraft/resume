@@ -3,8 +3,14 @@ import {testdb} from '../fixtures/datasources/testdb.datasource';
 import {Todo, TodoList} from '../../models';
 
 export async function givenEmptyDatabase() {
-  const todoRepository: TodoRepository = new TodoRepository(testdb);
-  const todoListRepository: TodoListRepository = new TodoListRepository(
+  let todoRepository: TodoRepository;
+  // eslint-disable-next-line prefer-const
+  let todoListRepository: TodoListRepository;
+
+  // eslint-disable-next-line prefer-const
+  todoRepository = new TodoRepository(testdb, async () => todoListRepository);
+
+  todoListRepository = new TodoListRepository(
     testdb,
     async () => todoRepository,
   );
@@ -31,30 +37,36 @@ export function givenTodoListData(data?: Partial<TodoList>) {
       title: 'basic-todo-list',
       description: 'basic-description',
       creationDate: Date.now(),
+      tags: ['tag 1'],
     },
     data,
   );
 }
 
-export async function givenTodoList(data?: Partial<TodoList>) {
-  return new TodoListRepository(
-    testdb,
-    async () => new TodoRepository(testdb),
-  ).create(givenTodoListData(data));
+export async function givenTodoList(
+  todoListRepo: TodoListRepository,
+  data?: Partial<TodoList>,
+) {
+  return todoListRepo.create(givenTodoListData(data));
 }
 
-export async function givenTodo(data?: Partial<Todo>) {
-  return new TodoRepository(testdb).create(givenTodoData(data));
+export async function givenTodo(
+  todoRepo: TodoRepository,
+  data?: Partial<Todo>,
+) {
+  return todoRepo.create(givenTodoData(data));
 }
 
 export function givenTodos(
+  todoRepo: TodoRepository,
   data: Array<Partial<Todo>> = [],
 ): Array<Promise<Todo>> {
-  return data.map(todo => givenTodo(todo));
+  return data.map(todo => givenTodo(todoRepo, todo));
 }
 
 export function givenTodoLists(
+  todoListRepo: TodoListRepository,
   data: Array<Partial<TodoList>> = [],
 ): Array<Promise<TodoList>> {
-  return data.map(todoList => givenTodoList(todoList));
+  return data.map(todoList => givenTodoList(todoListRepo, todoList));
 }

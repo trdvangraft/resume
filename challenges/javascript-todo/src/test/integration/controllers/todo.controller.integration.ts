@@ -8,22 +8,30 @@ import {
 import {expect} from '@loopback/testlab';
 import {TodoController} from '../../../controllers';
 import {testdb} from '../../fixtures/datasources/testdb.datasource';
-import {TodoRepository} from '../../../repositories';
+import {TodoRepository, TodoListRepository} from '../../../repositories';
 import {Todo} from '../../../models';
 import {todoConverter} from '../../helpers/types.helpers';
 
 describe('TodoController (integration)', () => {
   beforeEach(givenEmptyDatabase);
 
+  let todoListRepo: TodoListRepository;
+  let todoRepo: TodoRepository;
+
+  before(async () => {
+    todoListRepo = new TodoListRepository(testdb, async () => todoRepo);
+    todoRepo = new TodoRepository(testdb, async () => todoListRepo);
+  });
+
   describe('create()', () => {
     it('creates new todo', async () => {
       const todo = givenTodoData() as Todo;
-      const controller = new TodoController(new TodoRepository(testdb));
+      const controller = new TodoController(todoRepo);
 
       // convertBsonToString<Todo>()
-      const {id, todoListId, ...result} = await controller.create(todo);
+      const result = await controller.create(todo);
 
-      expect(result).to.eql(todo);
+      expect(todoConverter(result)).to.eql(todo);
     });
 
     it('creates a list of todos', async () => {
@@ -31,7 +39,7 @@ describe('TodoController (integration)', () => {
         givenTodoData(),
         givenTodoData({title: 'todo-b'}),
       ] as Array<Todo>;
-      const controller = new TodoController(new TodoRepository(testdb));
+      const controller = new TodoController(todoRepo);
 
       const result = await controller.createAll(todos);
 
@@ -40,22 +48,12 @@ describe('TodoController (integration)', () => {
 
       expect(todoConverter(result)).to.eql(todos);
     });
-
-    it('throws an error for incorrect todo', async () => {
-      const fakeTodo = {title: 'fake'} as Todo;
-
-      const controller = new TodoController(new TodoRepository(testdb));
-
-      const result = controller.create(fakeTodo);
-
-      expect(result).to.throw();
-    });
   });
 
   describe('read()', () => {
     it('finds new todo', async () => {
       const todos = await initTodos();
-      const controller = new TodoController(new TodoRepository(testdb));
+      const controller = new TodoController(todoRepo);
 
       const result = await controller.find();
 
@@ -64,7 +62,7 @@ describe('TodoController (integration)', () => {
 
     it('filters todos', async () => {
       const todos = await initTodos([{title: 'c-todo'}]);
-      const controller = new TodoController(new TodoRepository(testdb));
+      const controller = new TodoController(todoRepo);
 
       const result = await controller.find({where: {title: 'c-todo'}});
 
@@ -75,7 +73,7 @@ describe('TodoController (integration)', () => {
 
     it('returns empty list if no match', async () => {
       await initTodos();
-      const controller = new TodoController(new TodoRepository(testdb));
+      const controller = new TodoController(todoRepo);
 
       const result = await controller.find({where: {title: 'c-todo'}});
 
@@ -85,7 +83,7 @@ describe('TodoController (integration)', () => {
     });
 
     it('it returns an empty list on a empty db', async () => {
-      const controller = new TodoController(new TodoRepository(testdb));
+      const controller = new TodoController(todoRepo);
 
       const result = await controller.find({where: {title: 'c-todo'}});
 
@@ -97,7 +95,7 @@ describe('TodoController (integration)', () => {
 
   describe('update()', () => {
     it('update by id', async () => {
-      const controller = new TodoController(new TodoRepository(testdb));
+      const controller = new TodoController(todoRepo);
       const todos = await initTodos([{title: 'c-todo'}]);
 
       const todo = todos.filter(el => el.title === 'c-todo')[0];
@@ -110,7 +108,7 @@ describe('TodoController (integration)', () => {
     });
 
     it('update by where', async () => {
-      const controller = new TodoController(new TodoRepository(testdb));
+      const controller = new TodoController(todoRepo);
       await initTodos([{description: 'tag'}, {description: 'tag'}]);
 
       const todo = givenTodoData() as Todo;
@@ -124,21 +122,19 @@ describe('TodoController (integration)', () => {
   });
 
   describe('delete()', () => {
-    it('delete by id', async () => {
-      const controller = new TodoController(new TodoRepository(testdb));
-      const todos = await initTodos();
-      const todo = todos[0];
+    it('delete unexisting todo by id', async () => {
+      const controller = new TodoController(todoRepo);
 
-      await controller.deleteById(todo.id!);
-      const result = controller.findById(todo.id!);
-
-      expect(result).to.throw();
+      return controller.deleteById('1').then(
+        () => Promise.reject(new Error('Expected rejection')),
+        err => expect(err).instanceOf(Error),
+      );
     });
   });
 
   const initTodos = (additionalTodos: Array<Partial<Todo>> = []) => {
     return Promise.all(
-      givenTodos([
+      givenTodos(todoRepo, [
         {title: 'a-todo'},
         {title: 'b-todo', description: 'b-description'},
         ...additionalTodos,

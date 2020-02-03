@@ -1,5 +1,5 @@
 import {Entity, model, property, hasMany} from '@loopback/repository';
-import {Todo} from './todo.model';
+import {Todo, TodoWithRelations} from './todo.model';
 
 @model()
 export class TodoList extends Entity {
@@ -33,7 +33,7 @@ export class TodoList extends Entity {
     itemType: 'string',
     required: true,
     default: [],
-  })
+  })  
   tags: string[];
 
   @hasMany(() => Todo)
@@ -45,7 +45,7 @@ export class TodoList extends Entity {
 }
 
 export interface TodoListRelations {
-  // describe navigational properties here
+  todos?: TodoWithRelations[];
 }
 
 export type TodoListWithRelations = TodoList & TodoListRelations;

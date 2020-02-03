@@ -1,6 +1,7 @@
-import {Entity, model, property} from '@loopback/repository';
+import {Entity, model, property, belongsTo} from '@loopback/repository';
+import {TodoList, TodoListWithRelations} from './todo-list.model';
 
-@model({ settings: { strictObjectIDCoercion: true } })
+@model({settings: {strictObjectIDCoercion: true}})
 export class Todo extends Entity {
   @property({
     type: 'string',
@@ -33,10 +34,8 @@ export class Todo extends Entity {
   })
   color?: string;
 
-  @property({
-    type: 'string',
-  })
-  todoListId?: string;
+  @belongsTo(() => TodoList)
+  todoListId: string;
 
   constructor(data?: Partial<Todo>) {
     super(data);
@@ -45,6 +44,7 @@ export class Todo extends Entity {
 
 export interface TodoRelations {
   // describe navigational properties here
+  todoList?: TodoListWithRelations
 }
 
 export type TodoWithRelations = Todo & TodoRelations;
