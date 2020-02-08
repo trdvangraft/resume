@@ -1,14 +1,10 @@
-import {
-    inject,
-    LifeCycleObserver,
-    ValueOrPromise,
-} from '@loopback/core';
-import { juggler } from "@loopback/repository";
+import {inject, LifeCycleObserver, ValueOrPromise} from '@loopback/core';
+import {juggler} from '@loopback/repository';
 import config from './testdb.datasource.config.json';
 
 export class TestDb extends juggler.DataSource implements LifeCycleObserver {
   static dataSourceName = 'TodoListTestDB';
-  static instance: TestDb
+  static instance: TestDb;
 
   constructor(
     @inject('datasources.config.TodoListTestDB', {optional: true})
@@ -16,15 +12,15 @@ export class TestDb extends juggler.DataSource implements LifeCycleObserver {
   ) {
     super(dsConfig);
     if (TestDb.instance) {
-      return TestDb.instance
+      return TestDb.instance;
     }
-    
-    TestDb.instance = this
 
-    return this
+    TestDb.instance = this;
+
+    return this;
   }
 
-    /**
+  /**
    * Start the datasource when application is started
    */
   start(): ValueOrPromise<void> {
@@ -40,4 +36,4 @@ export class TestDb extends juggler.DataSource implements LifeCycleObserver {
   }
 }
 
-export const testdb = new TestDb()
+export const testdb = new TestDb();

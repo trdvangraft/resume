@@ -7,5 +7,6 @@
   "user": "",
   "password": "",
   "database": "todo_list",
-  "useNewUrlParser": true
+  "useNewUrlParser": true,
+  "allowExtendedOperators": true
 }

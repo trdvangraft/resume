@@ -4,23 +4,22 @@ import {
   givenTodo,
   givenTodos,
   givenTodoData,
+  init,
 } from '../../helpers/database.helpers';
 import {expect} from '@loopback/testlab';
 import {TodoController} from '../../../controllers';
-import {testdb} from '../../fixtures/datasources/testdb.datasource';
-import {TodoRepository, TodoListRepository} from '../../../repositories';
+import {TodoRepository} from '../../../repositories';
 import {Todo} from '../../../models';
 import {todoConverter} from '../../helpers/types.helpers';
 
 describe('TodoController (integration)', () => {
   beforeEach(givenEmptyDatabase);
 
-  let todoListRepo: TodoListRepository;
   let todoRepo: TodoRepository;
 
   before(async () => {
-    todoListRepo = new TodoListRepository(testdb, async () => todoRepo);
-    todoRepo = new TodoRepository(testdb, async () => todoListRepo);
+    const repos = await init();
+    todoRepo = repos.todoRepo;
   });
 
   describe('create()', () => {

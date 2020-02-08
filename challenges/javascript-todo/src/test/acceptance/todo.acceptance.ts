@@ -1,22 +1,22 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import {setupApplication} from '../helpers/app.helpers';
-import {givenEmptyDatabase, givenTodo} from '../helpers/database.helpers';
+import {givenEmptyDatabase, givenTodo, init} from '../helpers/database.helpers';
 import {expect, Client} from '@loopback/testlab';
 
 import {TodoApp} from '../..';
-import {Todo} from '../../models';
-import {TodoRepository, TodoListRepository} from '../../repositories';
-import {testdb} from '../fixtures/datasources/testdb.datasource';
+import {TodoRepository} from '../../repositories';
 
 describe('Todo (acceptance)', async () => {
   let app: TodoApp;
   let client: Client;
 
   let todoRepo: TodoRepository;
-  let todoListRepo: TodoListRepository;
 
   before(givenEmptyDatabase);
-  before(init);
+  before(async () => {
+    const repos = await init();
+    todoRepo = repos.todoRepo;
+  });
   before(
     'setupApplication',
     async () => ({app, client} = await setupApplication()),
@@ -40,9 +40,4 @@ describe('Todo (acceptance)', async () => {
     const resp = await client.get('/todos');
     expect(resp.body).to.containEql(expected);
   });
-
-  function init() {
-    todoListRepo = new TodoListRepository(testdb, async () => todoRepo);
-    todoRepo = new TodoRepository(testdb, async () => todoListRepo);
-  }
 });

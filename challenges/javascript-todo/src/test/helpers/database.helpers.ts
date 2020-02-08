@@ -1,22 +1,68 @@
-import {TodoListRepository, TodoRepository} from '../../repositories';
+import {
+  TodoListRepository,
+  TodoRepository,
+  UserRepository,
+  FriendshipRepository,
+  AttachmentRepository,
+} from '../../repositories';
 import {testdb} from '../fixtures/datasources/testdb.datasource';
-import {Todo, TodoList} from '../../models';
+import {Todo, TodoList, User, Friendship, Attachment} from '../../models';
 
 export async function givenEmptyDatabase() {
-  let todoRepository: TodoRepository;
+  const {
+    todoRepo,
+    todoListRepo,
+    userRepo,
+    friendshipRepo,
+    attachmentRepo,
+  } = await init();
+
+  await todoRepo.deleteAll();
+  await todoListRepo.deleteAll();
+  await userRepo.deleteAll();
+  await friendshipRepo.deleteAll();
+  await attachmentRepo.deleteAll();
+}
+
+export async function init() {
+  let todoRepo: TodoRepository;
   // eslint-disable-next-line prefer-const
-  let todoListRepository: TodoListRepository;
+  let todoListRepo: TodoListRepository;
+  // eslint-disable-next-line prefer-const
+  let userRepo: UserRepository;
 
   // eslint-disable-next-line prefer-const
-  todoRepository = new TodoRepository(testdb, async () => todoListRepository);
+  let friendshipRepo: FriendshipRepository;
 
-  todoListRepository = new TodoListRepository(
+  // eslint-disable-next-line prefer-const
+  let attachmentRepo: AttachmentRepository;
+
+  // eslint-disable-next-line prefer-const
+  userRepo = new UserRepository(
     testdb,
-    async () => todoRepository,
+    async () => todoListRepo,
+    async () => friendshipRepo,
+  );
+  // eslint-disable-next-line prefer-const
+  todoRepo = new TodoRepository(testdb, async () => todoListRepo);
+  friendshipRepo = new FriendshipRepository(testdb, async () => userRepo);
+
+  todoListRepo = new TodoListRepository(
+    testdb,
+    async () => todoRepo,
+    async () => userRepo,
+    async () => attachmentRepo,
   );
 
-  await todoRepository.deleteAll();
-  await todoListRepository.deleteAll();
+  attachmentRepo = new AttachmentRepository(testdb, async () => todoListRepo);
+
+  return {
+    todoRepo,
+    todoListRepo,
+    friendshipRepo,
+    userRepo,
+    attachmentRepo,
+  };
 }
 
 export function givenTodoData(data?: Partial<Todo>) {
@@ -43,11 +89,45 @@ export function givenTodoListData(data?: Partial<TodoList>) {
   );
 }
 
+function givenUserData(data?: Partial<User>) {
+  return Object.assign(
+    {
+      username: 'xxstaticfieldxx',
+      firstname: 'Tijmen',
+      lastname: 'van Graft',
+      password: 'pass123',
+    },
+    data,
+  );
+}
+
+function givenAttachmentData(data?: Partial<Attachment>) {
+  return Object.assign(
+    {
+      title: 'cat pictures',
+      description: 'cat pictures are the worst',
+      url: 'https://api.imgur.com/3/image/1',
+    },
+    data,
+  );
+}
+
+function givenFriendshipData(data?: Partial<Friendship>) {
+  return Object.assign({}, data);
+}
+
 export async function givenTodoList(
   todoListRepo: TodoListRepository,
   data?: Partial<TodoList>,
 ) {
   return todoListRepo.create(givenTodoListData(data));
+}
+
+export function givenTodoLists(
+  todoListRepo: TodoListRepository,
+  data: Array<Partial<TodoList>> = [],
+): Array<Promise<TodoList>> {
+  return data.map(todoList => givenTodoList(todoListRepo, todoList));
 }
 
 export async function givenTodo(
@@ -64,9 +144,23 @@ export function givenTodos(
   return data.map(todo => givenTodo(todoRepo, todo));
 }
 
-export function givenTodoLists(
-  todoListRepo: TodoListRepository,
-  data: Array<Partial<TodoList>> = [],
-): Array<Promise<TodoList>> {
-  return data.map(todoList => givenTodoList(todoListRepo, todoList));
+export async function givenUser(
+  userRepository: UserRepository,
+  data?: Partial<User>,
+) {
+  return userRepository.create(givenUserData(data));
+}
+
+export async function givenFriendship(
+  friendshipRepo: FriendshipRepository,
+  data?: Partial<Friendship>,
+) {
+  return friendshipRepo.create(givenFriendshipData(data));
+}
+
+export async function givenAttachment(
+  attachmentRepo: AttachmentRepository,
+  data?: Partial<Attachment>,
+) {
+  return attachmentRepo.create(givenAttachmentData(data));
 }

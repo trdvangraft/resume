@@ -1,7 +1,26 @@
-import {Entity, model, property, hasMany} from '@loopback/repository';
+import {
+  Entity,
+  model,
+  property,
+  hasMany,
+  belongsTo,
+} from '@loopback/repository';
 import {Todo, TodoWithRelations} from './todo.model';
+import {User, UserWithRelations} from './user.model';
+import {Attachment} from './attachment.model';
 
-@model()
+@model({
+  name: 'Todo list',
+  settings: {
+    description: 'Todo list entity, it contains container for todos',
+    scopes: {
+      newest: {limit: 1, order: 'creationDate'},
+    },
+    mongodb: {
+      allowExtendedOperators: true,
+    },
+  },
+})
 export class TodoList extends Entity {
   @property({
     type: 'string',
@@ -33,11 +52,17 @@ export class TodoList extends Entity {
     itemType: 'string',
     required: true,
     default: [],
-  })  
+  })
   tags: string[];
 
   @hasMany(() => Todo)
   todos: Todo[];
+
+  @belongsTo(() => User)
+  userId: string;
+
+  @hasMany(() => Attachment)
+  attachments: Attachment[];
 
   constructor(data?: Partial<TodoList>) {
     super(data);
@@ -46,6 +71,7 @@ export class TodoList extends Entity {
 
 export interface TodoListRelations {
   todos?: TodoWithRelations[];
+  userId?: UserWithRelations;
 }
 
 export type TodoListWithRelations = TodoList & TodoListRelations;

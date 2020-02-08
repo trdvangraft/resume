@@ -4,17 +4,28 @@ import {
   givenTodo,
   givenTodoListData,
   givenTodoData,
+  init,
+  givenAttachment,
 } from '../../helpers/database.helpers';
-import {TodoListRepository, TodoRepository} from '../../../repositories';
-import {testdb} from '../../fixtures/datasources/testdb.datasource';
+import {
+  TodoListRepository,
+  TodoRepository,
+  AttachmentRepository,
+} from '../../../repositories';
 import {expect, toJSON} from '@loopback/testlab';
 
 describe('TodoListRepository (Integration)', () => {
   let todoRepo: TodoRepository;
   let todoListRepo: TodoListRepository;
+  let attachmentRepo: AttachmentRepository;
 
   beforeEach(givenEmptyDatabase);
-  beforeEach(init);
+  beforeEach(async () => {
+    const repos = await init();
+    todoRepo = repos.todoRepo;
+    todoListRepo = repos.todoListRepo;
+    attachmentRepo = repos.attachmentRepo;
+  });
 
   // TODO: convert this to have proper date representation
   describe('create()', () => {
@@ -26,7 +37,7 @@ describe('TodoListRepository (Integration)', () => {
       expect(toJSON(response)).to.deepEqual([{...toJSON(list)}]);
     });
 
-    it('adds a todo to a todolist', async () => {
+    it('adds a todo and attachment to a todolist', async () => {
       const list = await givenTodoList(todoListRepo);
       const todos = [
         await givenTodo(todoRepo, {todoListId: list.id}),
@@ -35,15 +46,19 @@ describe('TodoListRepository (Integration)', () => {
           todoListId: list.id,
         }),
       ];
+      const attachment = await givenAttachment(attachmentRepo, {
+        todoListId: list.id,
+      });
 
       const response = await todoListRepo.find({
-        include: [{relation: 'todos'}],
+        include: [{relation: 'todos'}, {relation: 'attachments'}],
       });
 
       expect(toJSON(response)).to.deepEqual([
         {
           ...toJSON(list),
           todos: toJSON(todos),
+          attachments: [toJSON(attachment)],
         },
       ]);
     });
@@ -184,6 +199,21 @@ describe('TodoListRepository (Integration)', () => {
       ]);
     });
 
+    it('adds a new tag and updates it', async () => {
+      const list = await givenTodoList(todoListRepo);
+
+      await todoListRepo.addTag(list.id, 'new tag');
+      await todoListRepo.addTag(list.id, 'another tag');
+      await todoListRepo.updateTag(list.id, 'another tag', 'the best tag');
+
+      const response = await todoListRepo.findById(list.id);
+
+      expect(toJSON(response)).to.deepEqual({
+        ...toJSON(list),
+        tags: [...list.tags, 'new tag', 'the best tag'],
+      });
+    });
+
     it('removes and reassignes todos', async () => {
       const listA = await givenTodoList(todoListRepo, {title: 'list-a'});
       const listB = await givenTodoList(todoListRepo, {title: 'list-b'});
@@ -236,19 +266,45 @@ describe('TodoListRepository (Integration)', () => {
   });
 
   describe('delete()', () => {
-    it('deletes a todolist and all its todos', async () => {
+    it('deletes a todolist based on where query and all its todos', async () => {
+      const listA = await givenTodoList(todoListRepo, {
+        title: 'list-a',
+        description: 'example todolist',
+      });
+      const listB = await givenTodoList(todoListRepo, {title: 'list-b'});
+      const listC = await givenTodoList(todoListRepo, {
+        title: 'list-c',
+        description: 'example todolist',
+      });
+      await givenTodo(todoRepo, {todoListId: listA.id});
+      await givenTodo(todoRepo, {todoListId: listB.id});
+      await givenTodo(todoRepo, {todoListId: listC.id});
+
+      expect(await todoRepo.find()).to.have.length(3);
+
+      // TODO create deletes all with this
+      await todoListRepo.deleteAll({description: 'example todolist'});
+
+      expect(await todoListRepo.find()).to.have.length(1);
+      expect(await todoRepo.find()).to.have.length(1);
+    });
+
+    it('deletes all todos belonging to a list based on the list id', async () => {
       const listA = await givenTodoList(todoListRepo, {title: 'list-a'});
+      const listB = await givenTodoList(todoListRepo, {title: 'list-b'});
       await givenTodo(todoRepo, {
         title: 'additional todo',
         todoListId: listA.id,
       });
 
-      expect(await todoRepo.find()).to.have.length(1);
+      await givenTodo(todoRepo, {todoListId: listB.id});
+
+      expect(await todoRepo.find()).to.have.length(2);
 
       await todoListRepo.deleteById(listA.id);
 
-      expect(await todoListRepo.find()).to.have.length(0);
-      expect(await todoRepo.find()).to.have.length(0);
+      expect(await todoListRepo.find()).to.have.length(1);
+      expect(await todoRepo.find()).to.have.length(1);
     });
 
     it('deletes all todos when no filter is given', async () => {
@@ -263,9 +319,4 @@ describe('TodoListRepository (Integration)', () => {
       expect(await todoListRepo.find()).to.have.length(0);
     });
   });
-
-  function init() {
-    todoListRepo = new TodoListRepository(testdb, async () => todoRepo);
-    todoRepo = new TodoRepository(testdb, async () => todoListRepo);
-  }
 });
