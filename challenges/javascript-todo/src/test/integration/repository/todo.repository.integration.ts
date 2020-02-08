@@ -27,6 +27,17 @@ describe('TodoRepository (Integration)', () => {
         },
       ]);
     });
+
+    it('creates multiple instances', async () => {
+      const todos = await todoRepo.createAll([
+        givenTodoData({title: 'todoA'}),
+        givenTodoData({title: 'todoB'}),
+        givenTodoData({title: 'todoC'}),
+      ]);
+
+      const response = await todoRepo.find();
+      expect(toJSON(response)).to.deepEqual([...toJSON(todos)]);
+    });
   });
 
   describe('read()', () => {

@@ -8,3 +8,4 @@ export * from './user-todo-list.controller';
 export * from './user-friendship.controller';
 export * from './friendship-user.controller';
 export * from './todo-list-attachment.controller';
+export * from './user.controller';
