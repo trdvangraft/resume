@@ -4,9 +4,8 @@ import {
   repository,
   HasManyRepositoryFactory,
   Condition,
-  AndClause,
-  OrClause,
   BelongsToAccessor,
+  Count,
 } from '@loopback/repository';
 import {TodoList, TodoListRelations, Todo, User, Attachment} from '../models';
 import {TodoListDbDataSource} from '../datasources';
@@ -27,18 +26,29 @@ export class TodoListRepository extends DefaultCrudRepository<
 
   public readonly user: BelongsToAccessor<User, typeof TodoList.prototype.id>;
 
-  public readonly attachments: HasManyRepositoryFactory<Attachment, typeof TodoList.prototype.id>;
+  public readonly attachments: HasManyRepositoryFactory<
+    Attachment,
+    typeof TodoList.prototype.id
+  >;
 
   constructor(
     @inject('datasources.TodoListDB') dataSource: TodoListDbDataSource,
     @repository.getter('TodoRepository')
     protected todoRepositoryGetter: Getter<TodoRepository>,
     @repository.getter('UserRepository')
-    protected userRepositoryGetter: Getter<UserRepository>, @repository.getter('AttachmentRepository') protected attachmentRepositoryGetter: Getter<AttachmentRepository>,
+    protected userRepositoryGetter: Getter<UserRepository>,
+    @repository.getter('AttachmentRepository')
+    protected attachmentRepositoryGetter: Getter<AttachmentRepository>,
   ) {
     super(TodoList, dataSource);
-    this.attachments = this.createHasManyRepositoryFactoryFor('attachments', attachmentRepositoryGetter,);
-    this.registerInclusionResolver('attachments', this.attachments.inclusionResolver);
+    this.attachments = this.createHasManyRepositoryFactoryFor(
+      'attachments',
+      attachmentRepositoryGetter,
+    );
+    this.registerInclusionResolver(
+      'attachments',
+      this.attachments.inclusionResolver,
+    );
     this.todos = this.createHasManyRepositoryFactoryFor(
       'todos',
       todoRepositoryGetter,
@@ -64,9 +74,7 @@ export class TodoListRepository extends DefaultCrudRepository<
     await super.deleteById(id);
   }
 
-  async deleteAll(
-    query?: Condition<TodoList> | AndClause<TodoList> | OrClause<TodoList>,
-  ) {
+  async deleteAll(query?: Condition<TodoList>): Promise<Count> {
     const todoRepository = await this.todoRepositoryGetter();
     const count = await super.deleteAll(query);
     await super

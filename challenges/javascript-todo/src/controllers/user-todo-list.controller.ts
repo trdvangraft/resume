@@ -15,16 +15,13 @@ import {
   post,
   requestBody,
 } from '@loopback/rest';
-import {
-  User,
-  TodoList,
-} from '../models';
+import {User, TodoList} from '../models';
 import {UserRepository} from '../repositories';
 
 export class UserTodoListController {
   constructor(
     @repository(UserRepository) protected userRepository: UserRepository,
-  ) { }
+  ) {}
 
   @get('/users/{id}/todo-lists', {
     responses: {
@@ -61,11 +58,12 @@ export class UserTodoListController {
           schema: getModelSchemaRef(TodoList, {
             title: 'NewTodoListInUser',
             exclude: ['id'],
-            optional: ['userId']
+            optional: ['userId'],
           }),
         },
       },
-    }) todoList: Omit<TodoList, 'id'>,
+    })
+    todoList: Omit<TodoList, 'id'>,
   ): Promise<TodoList> {
     return this.userRepository.todoLists(id).create(todoList);
   }
@@ -88,7 +86,8 @@ export class UserTodoListController {
       },
     })
     todoList: Partial<TodoList>,
-    @param.query.object('where', getWhereSchemaFor(TodoList)) where?: Where<TodoList>,
+    @param.query.object('where', getWhereSchemaFor(TodoList))
+    where?: Where<TodoList>,
   ): Promise<Count> {
     return this.userRepository.todoLists(id).patch(todoList, where);
   }
@@ -103,7 +102,8 @@ export class UserTodoListController {
   })
   async delete(
     @param.path.string('id') id: string,
-    @param.query.object('where', getWhereSchemaFor(TodoList)) where?: Where<TodoList>,
+    @param.query.object('where', getWhereSchemaFor(TodoList))
+    where?: Where<TodoList>,
   ): Promise<Count> {
     return this.userRepository.todoLists(id).delete(where);
   }

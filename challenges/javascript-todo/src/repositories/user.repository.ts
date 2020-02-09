@@ -6,12 +6,21 @@ import {
   Condition,
   AndClause,
   OrClause,
+  HasOneRepositoryFactory,
+  Count,
 } from '@loopback/repository';
-import {User, UserRelations, TodoList, Friendship} from '../models';
+import {
+  User,
+  UserRelations,
+  TodoList,
+  Friendship,
+  UserCredentials,
+} from '../models';
 import {TodoListDbDataSource} from '../datasources';
 import {inject, Getter} from '@loopback/core';
 import {TodoListRepository} from './todo-list.repository';
 import {FriendshipRepository} from './friendship.repository';
+import {UserCredentialsRepository} from './user-credentials.repository';
 
 export class UserRepository extends DefaultCrudRepository<
   User,
@@ -28,14 +37,27 @@ export class UserRepository extends DefaultCrudRepository<
     typeof User.prototype.id
   >;
 
+  public readonly userCredentials: HasOneRepositoryFactory<
+    UserCredentials,
+    typeof User.prototype.id
+  >;
+
   constructor(
     @inject('datasources.TodoListDB') dataSource: TodoListDbDataSource,
     @repository.getter('TodoListRepository')
     protected todoListRepositoryGetter: Getter<TodoListRepository>,
     @repository.getter('FriendshipRepository')
     protected friendshipRepositoryGetter: Getter<FriendshipRepository>,
+    @repository.getter('UserCredentialsRepository')
+    protected userCredentialsRepositoryGetter: Getter<
+      UserCredentialsRepository
+    >,
   ) {
     super(User, dataSource);
+    this.userCredentials = this.createHasOneRepositoryFactoryFor(
+      'userCredentials',
+      userCredentialsRepositoryGetter,
+    );
     this.friendships = this.createHasManyRepositoryFactoryFor(
       'friendships',
       friendshipRepositoryGetter,
@@ -60,7 +82,9 @@ export class UserRepository extends DefaultCrudRepository<
     return super.updateById(from, {$push: {friends: to}});
   }
 
-  async deleteAll(query?: Condition<User> | AndClause<User> | OrClause<User>) {
+  async deleteAll(
+    query?: Condition<User> | AndClause<User> | OrClause<User>,
+  ): Promise<Count> {
     const todoListRepository = await this.todoListRepositoryGetter();
     const count = await super.deleteAll(query);
     await super
@@ -83,5 +107,18 @@ export class UserRepository extends DefaultCrudRepository<
     const todoListRepository = await this.todoListRepositoryGetter();
     await todoListRepository.deleteAll({userId: id});
     await super.deleteById(id);
+  }
+
+  async findCredentials(
+    userId: typeof User.prototype.id,
+  ): Promise<UserCredentials | undefined> {
+    try {
+      return await this.userCredentials(userId).get();
+    } catch (err) {
+      if (err.code === 'ENTITY_NOT_FOUND') {
+        return undefined;
+      }
+      throw err;
+    }
   }
 }

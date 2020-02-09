@@ -4,15 +4,27 @@ import {
   property,
   hasMany,
   belongsTo,
+  hasOne,
 } from '@loopback/repository';
 import {TodoList, TodoListWithRelations} from './todo-list.model';
 import {Friendship, FriendshipWithRelations} from './friendship.model';
+import {UserCredentials} from './user-credentials.model';
 
 @model({
   settings: {
     hiddenProperties: ['password'],
     mongodb: {
       allowExtendedOperators: true,
+    },
+    indexes: {
+      uniqueEmail: {
+        keys: {
+          email: 1,
+        },
+        options: {
+          unique: true,
+        },
+      },
     },
   },
 })
@@ -23,6 +35,12 @@ export class User extends Entity {
     generated: true,
   })
   id?: string;
+
+  @property({
+    type: 'string',
+    required: true,
+  })
+  email: string;
 
   @property({
     type: 'string',
@@ -50,16 +68,19 @@ export class User extends Entity {
   joinDate: string;
 
   @property({
-    type: 'string',
-    required: true,
+    type: 'array',
+    itemType: 'string',
   })
-  password: string;
+  roles?: string[];
 
   @hasMany(() => TodoList)
   todoLists: TodoList[];
 
   @hasMany(() => Friendship)
   friendships: Friendship[];
+
+  @hasOne(() => UserCredentials)
+  userCredentials: UserCredentials;
 
   constructor(data?: Partial<User>) {
     super(data);

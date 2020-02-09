@@ -19,11 +19,15 @@ import {
 } from '@loopback/rest';
 import {User} from '../models';
 import {UserRepository} from '../repositories';
+import {authenticate} from '@loopback/authentication';
+import {inject} from '@loopback/core';
+import {UserProfile, securityId, SecurityBindings} from '@loopback/security';
+import {OPERATION_SECURITY_SPEC} from '../util/security.util';
 
 export class UserController {
   constructor(
     @repository(UserRepository)
-    public userRepository : UserRepository,
+    public userRepository: UserRepository,
   ) {}
 
   @post('/users', {
@@ -80,7 +84,8 @@ export class UserController {
     },
   })
   async find(
-    @param.query.object('filter', getFilterSchemaFor(User)) filter?: Filter<User>,
+    @param.query.object('filter', getFilterSchemaFor(User))
+    filter?: Filter<User>,
   ): Promise<User[]> {
     return this.userRepository.find(filter);
   }
@@ -107,7 +112,8 @@ export class UserController {
     return this.userRepository.updateAll(user, where);
   }
 
-  @get('/users/{id}', {
+  @get('/users/me', {
+    security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: 'User model instance',
@@ -119,11 +125,14 @@ export class UserController {
       },
     },
   })
+  @authenticate('jwt')
   async findById(
-    @param.path.string('id') id: string,
-    @param.query.object('filter', getFilterSchemaFor(User)) filter?: Filter<User>
+    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
+    @param.query.object('filter', getFilterSchemaFor(User))
+    filter?: Filter<User>,
   ): Promise<User> {
-    return this.userRepository.findById(id, filter);
+    const userId = currentUserProfile[securityId] as string;
+    return this.userRepository.findById(userId, filter);
   }
 
   @patch('/users/{id}', {

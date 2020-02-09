@@ -4,6 +4,7 @@ import {
   UserRepository,
   FriendshipRepository,
   AttachmentRepository,
+  UserCredentialsRepository,
 } from '../../repositories';
 import {testdb} from '../fixtures/datasources/testdb.datasource';
 import {Todo, TodoList, User, Friendship, Attachment} from '../../models';
@@ -38,14 +39,19 @@ export async function init() {
   let attachmentRepo: AttachmentRepository;
 
   // eslint-disable-next-line prefer-const
+  let userCredentials: UserCredentialsRepository;
+
+  // eslint-disable-next-line prefer-const
   userRepo = new UserRepository(
     testdb,
     async () => todoListRepo,
     async () => friendshipRepo,
+    async () => userCredentials,
   );
   // eslint-disable-next-line prefer-const
   todoRepo = new TodoRepository(testdb, async () => todoListRepo);
   friendshipRepo = new FriendshipRepository(testdb, async () => userRepo);
+  userCredentials = new UserCredentialsRepository(testdb);
 
   todoListRepo = new TodoListRepository(
     testdb,
