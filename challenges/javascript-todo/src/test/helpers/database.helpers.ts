@@ -101,7 +101,7 @@ function givenUserData(data?: Partial<User>) {
       username: 'xxstaticfieldxx',
       firstname: 'Tijmen',
       lastname: 'van Graft',
-      password: 'pass123',
+      email: 'test123@gmail.com',
     },
     data,
   );
