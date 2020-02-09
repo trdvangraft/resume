@@ -32,21 +32,6 @@ describe('TodoController (integration)', () => {
 
       expect(todoConverter(result)).to.eql(todo);
     });
-
-    it('creates a list of todos', async () => {
-      const todos = [
-        givenTodoData(),
-        givenTodoData({title: 'todo-b'}),
-      ] as Array<Todo>;
-      const controller = new TodoController(todoRepo);
-
-      const result = await controller.createAll(todos);
-
-      // assert that all todos have a valid id
-      result.map(el => expect(el).to.have.property('id').which.is.String);
-
-      expect(todoConverter(result)).to.eql(todos);
-    });
   });
 
   describe('read()', () => {

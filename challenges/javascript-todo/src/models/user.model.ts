@@ -1,11 +1,4 @@
-import {
-  Entity,
-  model,
-  property,
-  hasMany,
-  belongsTo,
-  hasOne,
-} from '@loopback/repository';
+import {Entity, model, property, hasMany, hasOne} from '@loopback/repository';
 import {TodoList, TodoListWithRelations} from './todo-list.model';
 import {Friendship, FriendshipWithRelations} from './friendship.model';
 import {UserCredentials} from './user-credentials.model';
@@ -26,6 +19,7 @@ import {UserCredentials} from './user-credentials.model';
         },
       },
     },
+    additionalProperties: true,
   },
 })
 export class User extends Entity {
@@ -62,7 +56,6 @@ export class User extends Entity {
 
   @property({
     type: 'date',
-    required: true,
     default: Date.now(),
   })
   joinDate: string;

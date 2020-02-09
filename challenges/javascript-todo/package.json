@@ -62,7 +62,9 @@
     "@types/yaml": "^1.2.0",
     "bcrypt": "^3.0.8",
     "bcryptjs": "2.4.3",
+    "isemail": "^3.2.0",
     "jsonwebtoken": "^8.5.1",
+    "lodash": "^4.17.15",
     "loopback-connector-mongodb": "^5.2.1",
     "ts-node": "^8.6.1"
   },

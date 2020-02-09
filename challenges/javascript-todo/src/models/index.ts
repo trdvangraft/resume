@@ -4,4 +4,4 @@ export * from './user.model';
 export * from './attachment.model';
 export * from './friendship.model';
 export * from './user-credentials.model';
-export * from './new-user.model';
+export * from './new-user-request.model';

@@ -13,7 +13,6 @@ import {
   getModelSchemaRef,
   getWhereSchemaFor,
   patch,
-  put,
   del,
   requestBody,
 } from '@loopback/rest';
@@ -23,7 +22,7 @@ import {TodoListRepository} from '../repositories';
 export class TodoListController {
   constructor(
     @repository(TodoListRepository)
-    public todoListRepository : TodoListRepository,
+    public todoListRepository: TodoListRepository,
   ) {}
 
   @post('/todo-lists', {
@@ -50,20 +49,6 @@ export class TodoListController {
     return this.todoListRepository.create(todoList);
   }
 
-  @get('/todo-lists/count', {
-    responses: {
-      '200': {
-        description: 'TodoList model count',
-        content: {'application/json': {schema: CountSchema}},
-      },
-    },
-  })
-  async count(
-    @param.query.object('where', getWhereSchemaFor(TodoList)) where?: Where<TodoList>,
-  ): Promise<Count> {
-    return this.todoListRepository.count(where);
-  }
-
   @get('/todo-lists', {
     responses: {
       '200': {
@@ -80,7 +65,8 @@ export class TodoListController {
     },
   })
   async find(
-    @param.query.object('filter', getFilterSchemaFor(TodoList)) filter?: Filter<TodoList>,
+    @param.query.object('filter', getFilterSchemaFor(TodoList))
+    filter?: Filter<TodoList>,
   ): Promise<TodoList[]> {
     return this.todoListRepository.find(filter);
   }
@@ -102,7 +88,8 @@ export class TodoListController {
       },
     })
     todoList: TodoList,
-    @param.query.object('where', getWhereSchemaFor(TodoList)) where?: Where<TodoList>,
+    @param.query.object('where', getWhereSchemaFor(TodoList))
+    where?: Where<TodoList>,
   ): Promise<Count> {
     return this.todoListRepository.updateAll(todoList, where);
   }
@@ -121,7 +108,8 @@ export class TodoListController {
   })
   async findById(
     @param.path.string('id') id: string,
-    @param.query.object('filter', getFilterSchemaFor(TodoList)) filter?: Filter<TodoList>
+    @param.query.object('filter', getFilterSchemaFor(TodoList))
+    filter?: Filter<TodoList>,
   ): Promise<TodoList> {
     return this.todoListRepository.findById(id, filter);
   }
@@ -145,20 +133,6 @@ export class TodoListController {
     todoList: TodoList,
   ): Promise<void> {
     await this.todoListRepository.updateById(id, todoList);
-  }
-
-  @put('/todo-lists/{id}', {
-    responses: {
-      '204': {
-        description: 'TodoList PUT success',
-      },
-    },
-  })
-  async replaceById(
-    @param.path.string('id') id: string,
-    @requestBody() todoList: TodoList,
-  ): Promise<void> {
-    await this.todoListRepository.replaceById(id, todoList);
   }
 
   @del('/todo-lists/{id}', {
